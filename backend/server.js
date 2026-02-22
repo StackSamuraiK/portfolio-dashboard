@@ -69,7 +69,7 @@ const getYahooData = async (ticker) => {
 const fetchAllData = async () => {
     const results = [];
     for (const item of portfolioData) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 250));
         const [cmp, googleData] = await Promise.all([
             getYahooData(item.Ticker),
             scrapeGoogleFinance(item.GoogleFinanceTicker)

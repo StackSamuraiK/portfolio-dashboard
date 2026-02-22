@@ -37,10 +37,16 @@ export default function Home() {
   const [isWarmingUp, setIsWarmingUp] = useState(false);
 
   const fetchData = async () => {
+    const warmupTimeout = setTimeout(() => {
+      setIsWarmingUp(true);
+    }, 2000);
+
     try {
       const res = await fetch('https://portfolio-dashboard-csw1.onrender.com/api/portfolio', {
         cache: 'no-store'
       });
+      clearTimeout(warmupTimeout);
+
       if (!res.ok && res.status !== 202) throw new Error('API fetch error');
 
       if (res.status === 202) {
@@ -54,6 +60,7 @@ export default function Home() {
       setLastUpdated(new Date());
       setError(null);
     } catch (err: any) {
+      clearTimeout(warmupTimeout);
       setError(err.message || 'Error parsing the portfolio data.');
     } finally {
       setLoading(false);
