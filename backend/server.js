@@ -5,15 +5,15 @@ const cheerio = require('cheerio');
 const YF = require('yahoo-finance2').default;
 const yahooFinance = new YF({ suppressNotices: ['yahooSurvey'] });
 const portfolioData = require('./data.json');
+const NodeCache = require('node-cache');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// cache
-let cachedPortfolio = [];
-let lastFetchTime = 0;
-const CACHE_TTL = 14000; // 14 sec
+const portfolioCache = new NodeCache({ stdTTL: 60 });
+
+const CACHE_KEY = 'portfolio_data';
 
 const formatNumber = (num) => isNaN(num) ? 'N/A' : Number(num).toFixed(2);
 
@@ -61,10 +61,7 @@ const getYahooData = async (ticker) => {
 };
 
 const fetchAllData = async () => {
-    const results = [];
-    for (const item of portfolioData) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-
+    const promises = portfolioData.map(async (item) => {
         const [cmp, googleData] = await Promise.all([
             getYahooData(item.Ticker),
             scrapeGoogleFinance(item.GoogleFinanceTicker)
@@ -78,38 +75,64 @@ const fetchAllData = async () => {
             gainLoss = formatNumber((cmp * item.Qty) - item.Investment);
         }
 
-        results.push({
+        return {
             ...item,
             CMP: cmp !== 'N/A' ? formatNumber(cmp) : 'N/A',
             PresentValue: presentValue,
             GainLoss: gainLoss,
             PERatio: googleData.peRatio,
             LatestEarnings: googleData.latestEarnings
-        });
-    }
+        };
+    });
 
-    return results;
+    return await Promise.all(promises);
 };
 
-app.get('/api/portfolio', async (req, res) => {
+// Background worker
+const startBackgroundWorker = async () => {
+    console.log("Background worker started. Fetching initial data...");
     try {
-        const now = Date.now();
-        if (cachedPortfolio.length > 0 && (now - lastFetchTime < CACHE_TTL)) {
-            return res.json({ source: 'cache', data: cachedPortfolio });
-        }
-
-        const updatedPortfolio = await fetchAllData();
-        cachedPortfolio = updatedPortfolio;
-        lastFetchTime = now;
-
-        res.json({ source: 'live', data: cachedPortfolio });
+        const data = await fetchAllData();
+        portfolioCache.set(CACHE_KEY, data);
+        console.log("Initial data fetch complete.");
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to fetch portfolio data' });
+        console.error("Error in initial background fetch:", error.message);
     }
+
+    setInterval(async () => {
+        try {
+            console.log("Background worker refreshing data...");
+            const data = await fetchAllData();
+            portfolioCache.set(CACHE_KEY, data);
+        } catch (error) {
+            console.error("Error in background fetch:", error.message);
+        }
+    }, 60000); // 60 sec
+};
+
+app.get('/api/portfolio', (req, res) => {
+    const cachedData = portfolioCache.get(CACHE_KEY);
+
+    if (cachedData) {
+        return res.json({ source: 'cache', data: cachedData });
+    }
+
+    return res.status(202).json({
+        message: 'Server is currently warming up and fetching initial data. Please try again shortly.',
+        status: 'warming_up',
+        data: portfolioData.map(item => ({
+            ...item,
+            CMP: 'N/A',
+            PresentValue: 'N/A',
+            GainLoss: 'N/A',
+            PERatio: 'N/A',
+            LatestEarnings: 'N/A'
+        }))
+    });
 });
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);
+    startBackgroundWorker();
 });
