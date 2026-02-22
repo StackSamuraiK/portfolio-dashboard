@@ -35,16 +35,16 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
             {
                 header: 'Avg Price',
                 accessorKey: 'PurchasePrice',
-                cell: info => `₹${Number(info.getValue()).toLocaleString()}`,
+                cell: info => `₹${Number(info.getValue()).toLocaleString('en-IN')}`,
                 aggregationFn: 'mean',
                 aggregatedCell: () => null,
             },
             {
                 header: 'Investment',
                 accessorKey: 'Investment',
-                cell: info => `₹${Number(info.getValue()).toLocaleString()}`,
+                cell: info => `₹${Number(info.getValue()).toLocaleString('en-IN')}`,
                 aggregationFn: 'sum',
-                aggregatedCell: ({ getValue }) => <span className="font-bold text-accent">₹{Number(getValue()).toLocaleString()}</span>,
+                aggregatedCell: ({ getValue }) => <span className="font-bold text-white">₹{Number(getValue()).toLocaleString('en-IN')}</span>,
             },
             {
                 header: 'CMP',
@@ -53,7 +53,7 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
                     const val = info.getValue() as number | string;
                     return val === 'N/A' ? (
                         <span className="flex items-center gap-1 text-gray-500 animate-pulse"><Activity size={14} /> Fetching...</span>
-                    ) : `₹${Number(val).toLocaleString()}`;
+                    ) : `₹${Number(val).toLocaleString('en-IN')}`;
                 },
                 aggregationFn: 'mean',
                 aggregatedCell: () => null,
@@ -63,7 +63,7 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
                 accessorKey: 'PresentValue',
                 cell: info => {
                     const val = info.getValue() as number | string;
-                    return val === 'N/A' ? '-' : `₹${Number(val).toLocaleString()}`;
+                    return val === 'N/A' ? '-' : `₹${Number(val).toLocaleString('en-IN')}`;
                 },
                 aggregationFn: (columnId, leafRows) => {
                     return leafRows.reduce((sum, row) => {
@@ -73,7 +73,7 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
                 },
                 aggregatedCell: ({ getValue }) => {
                     const val = getValue() as number;
-                    return val > 0 ? <span className="font-bold text-white">₹{val.toLocaleString()}</span> : '-';
+                    return val > 0 ? <span className="font-bold text-white">₹{val.toLocaleString('en-IN')}</span> : '-';
                 }
             },
             {
@@ -83,9 +83,11 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
                     const val = info.getValue() as number | string;
                     if (val === 'N/A') return '-';
                     const numVal = Number(val);
+                    const investment = Number(info.row.original.Investment) || 0;
+                    const percent = investment > 0 ? (numVal / investment) * 100 : 0;
                     return (
                         <span className="font-medium" style={{ color: numVal >= 0 ? '#10b981' : '#ef4444' }}>
-                            {numVal >= 0 ? '+' : ''}₹{numVal.toLocaleString()}
+                            {numVal >= 0 ? '+' : ''}₹{numVal.toLocaleString('en-IN')} <span className="text-xs ml-1">({numVal >= 0 ? '+' : ''}{percent.toFixed(2)}%)</span>
                         </span>
                     );
                 },
@@ -95,12 +97,14 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
                         return val !== 'N/A' ? sum + Number(val) : sum;
                     }, 0);
                 },
-                aggregatedCell: ({ getValue }) => {
+                aggregatedCell: ({ getValue, row }) => {
                     const numVal = getValue() as number;
                     if (!numVal) return '-';
+                    const investment = Number(row.getValue('Investment')) || 0;
+                    const percent = investment > 0 ? (numVal / investment) * 100 : 0;
                     return (
                         <span className="font-bold" style={{ color: numVal >= 0 ? '#10b981' : '#ef4444' }}>
-                            {numVal >= 0 ? '+' : ''}₹{numVal.toLocaleString()}
+                            {numVal >= 0 ? '+' : ''}₹{numVal.toLocaleString('en-IN')} <span className="text-xs ml-1">({numVal >= 0 ? '+' : ''}{percent.toFixed(2)}%)</span>
                         </span>
                     );
                 }
@@ -123,27 +127,30 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
         []
     );
 
-    const [expanded, setExpanded] = React.useState<ExpandedState>(true);
+    const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
     const table = useReactTable({
         data,
         columns,
         state: {
-            grouping: ['Sector'],
             expanded,
+        },
+        initialState: {
+            grouping: ['Sector'],
         },
         onExpandedChange: setExpanded,
         getCoreRowModel: getCoreRowModel(),
         getGroupedRowModel: getGroupedRowModel(),
         getExpandedRowModel: getExpandedRowModel(),
+        getRowCanExpand: () => true,
         autoResetExpanded: false,
     });
 
     if (loading) {
         return (
             <div className="flex justify-center items-center py-20 px-4 flex-col">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
-                <p className="text-accent animate-pulse">Gathering live portfolio metrics...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
+                <p className="text-zinc-400 animate-pulse">Gathering live portfolio metrics...</p>
             </div>
         );
     }
@@ -153,7 +160,7 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
             <table className="w-full text-left border-collapse">
                 <thead>
                     {table.getHeaderGroups().map(headerGroup => (
-                        <tr key={headerGroup.id} className="border-b border-surface-hover">
+                        <tr key={headerGroup.id} className="border-b border-border">
                             {headerGroup.headers.map(header => (
                                 <th key={header.id} className="p-4 text-sm font-semibold text-gray-300 whitespace-nowrap">
                                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -164,31 +171,25 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
                 </thead>
                 <tbody>
                     {table.getRowModel().rows.map(row => {
-                        if (row.parentId && !row.getParentRow()?.getIsExpanded()) {
-                            return null;
-                        }
-
                         return (
                             <tr
                                 key={row.id}
                                 className={clsx(
-                                    "border-b border-surface-hover/50 hover:bg-surface-hover/30 transition-colors",
-                                    row.getIsGrouped() ? "bg-surface-hover/20" : ""
+                                    "border-b border-border hover:bg-zinc-900 transition-colors",
+                                    row.getIsGrouped() ? "bg-zinc-950" : ""
                                 )}
                             >
                                 {row.getVisibleCells().map(cell => (
                                     <td key={cell.id} className={clsx("p-4 text-sm", row.getIsGrouped() && "font-semibold")}>
                                         {cell.getIsGrouped() ? (
-                                            <button
-                                                {...{
-                                                    onClick: row.getToggleExpandedHandler(),
-                                                    className: 'flex items-center gap-2 cursor-pointer text-primary-hover',
-                                                }}
+                                            <div
+                                                onClick={row.getToggleExpandedHandler()}
+                                                className="flex items-center gap-2 cursor-pointer text-white w-full h-full select-none"
                                             >
                                                 {row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                <span className="text-xs font-normal text-gray-400">({row.subRows.length})</span>
-                                            </button>
+                                                <span className="text-xs font-normal text-zinc-500">({row.subRows.length})</span>
+                                            </div>
                                         ) : cell.getIsAggregated() ? (
                                             flexRender(
                                                 cell.column.columnDef.aggregatedCell ?? cell.column.columnDef.cell,

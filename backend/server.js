@@ -13,7 +13,7 @@ app.use(express.json());
 // cache
 let cachedPortfolio = [];
 let lastFetchTime = 0;
-const CACHE_TTL = 14000; // 15 sec
+const CACHE_TTL = 14000; // 14 sec
 
 const formatNumber = (num) => isNaN(num) ? 'N/A' : Number(num).toFixed(2);
 

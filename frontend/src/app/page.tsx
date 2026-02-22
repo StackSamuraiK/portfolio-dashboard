@@ -7,6 +7,7 @@ import AllocationPieChart from './components/charts/AllocationPieChart';
 import SectorBarChart from './components/charts/SectorBarChart';
 import GrowthLineChart from './components/charts/GrowthLineChart';
 import GainInvestmentStackedBar from './components/charts/GainInvestmentStackedBar';
+import { Card, CardContent } from "@/components/ui/card";
 
 export type StockData = {
   Sector: string;
@@ -55,19 +56,19 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen p-8 bg-background-app flex flex-col items-center">
-      <header className="w-full max-w-[1400px] mb-8 flex justify-between items-end border-b border-surface-hover pb-4">
+    <div className="min-h-screen p-8 bg-black text-white flex flex-col items-center">
+      <header className="w-full max-w-[1400px] mb-8 flex justify-between items-end border-b border-zinc-800 pb-4">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight text-white">
             Portfolio Dashboard
           </h1>
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-sm text-zinc-400 mt-2">
             Real-time live monitoring of assets
           </p>
         </div>
         <div className="text-right">
-          {error && <p className="text-danger text-sm mb-2">{error}</p>}
-          <p className="text-xs text-slate-400 bg-surface px-3 py-1 rounded-full border border-surface-hover flex items-center justify-end gap-2">
+          {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+          <p className="text-xs text-zinc-400 bg-zinc-900 px-3 py-1 rounded-full border border-zinc-800 flex items-center justify-end gap-2">
             {!loading && <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse inline-block"></span>}
             {loading ? 'Refreshing API...' : `Live • ${lastUpdated?.toLocaleTimeString()}`}
           </p>
@@ -94,10 +95,12 @@ export default function Home() {
         )}
 
         {/* Table */}
-        <div className="bg-surface rounded-xl shadow-2xl p-6 border border-[#3c096c]">
-          <h2 className="text-xl font-semibold text-white mb-6">Holdings Table</h2>
-          <PortfolioTable data={data} loading={loading && data.length === 0} />
-        </div>
+        <Card className="bg-black border border-border">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-semibold text-white mb-6">Holdings Table</h2>
+            <PortfolioTable data={data} loading={loading && data.length === 0} />
+          </CardContent>
+        </Card>
       </main>
     </div>
   );

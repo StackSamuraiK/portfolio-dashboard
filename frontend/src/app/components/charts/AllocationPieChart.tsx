@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { StockData } from '../../page';
 
-const COLORS = ["#3c096c", "#5a189a", "#7b2cbf", "#9d4edd", "#c77dff", "#e0aaff", "#ffffff", "#8b5cf6"];
+const COLORS = ["#ffffff", "#d4d4d8", "#a1a1aa", "#71717a", "#52525b", "#8b5cf6", "#a78bfa", "#c4b5fd"];
 
 export default function AllocationPieChart({ data }: { data: StockData[] }) {
     const pieData = useMemo(() => {
@@ -25,8 +25,10 @@ export default function AllocationPieChart({ data }: { data: StockData[] }) {
 
     }, [data]);
 
+    const totalValue = useMemo(() => pieData.reduce((acc, curr) => acc + curr.value, 0), [pieData]);
+
     return (
-        <div className="bg-surface p-6 rounded-xl border border-surface-hover shadow-lg h-[400px] flex flex-col">
+        <div className="bg-black p-6 rounded-xl border border-border shadow-lg h-[400px] flex flex-col">
             <h3 className="text-lg font-semibold mb-4 text-white">Allocation by Sector</h3>
             <div className="flex-grow">
                 <ResponsiveContainer width="100%" height="100%">
@@ -46,9 +48,13 @@ export default function AllocationPieChart({ data }: { data: StockData[] }) {
                             ))}
                         </Pie>
                         <Tooltip
-                            formatter={(value: any) => `₹${Number(value).toLocaleString()}`}
-                            contentStyle={{ backgroundColor: '#10002b', borderColor: '#3c096c', color: '#fff', borderRadius: '8px' }}
-                            itemStyle={{ color: '#e0aaff' }}
+                            formatter={(value: any, name: any) => {
+                                const numVal = Number(value);
+                                const percent = totalValue > 0 ? ((numVal / totalValue) * 100).toFixed(2) : 0;
+                                return [`₹${numVal.toLocaleString('en-IN')}`, `${name} (${percent}%)`];
+                            }}
+                            contentStyle={{ backgroundColor: '#000000', borderColor: '#27272a', color: '#ffffff', borderRadius: '8px' }}
+                            itemStyle={{ color: '#ffffff' }}
                         />
                         <Legend wrapperStyle={{ paddingTop: '20px' }} />
                     </PieChart>
