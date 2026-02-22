@@ -22,7 +22,8 @@ const scrapeGoogleFinance = async (ticker) => {
         const { data } = await axios.get(`https://www.google.com/finance/quote/${ticker}`, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
+            },
+            timeout: 3000
         });
         const $ = cheerio.load(data);
 
@@ -48,7 +49,10 @@ const scrapeGoogleFinance = async (ticker) => {
 
 const getYahooData = async (ticker) => {
     try {
-        const quote = await yahooFinance.quote(ticker);
+        const quote = await Promise.race([
+            yahooFinance.quote(ticker),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout after 3s')), 3000))
+        ]);
         return quote?.regularMarketPrice || 'N/A';
     } catch (err) {
         console.error(`Yahoo Finance fetch failed for ${ticker}:`, err.message);

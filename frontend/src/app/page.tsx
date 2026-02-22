@@ -26,15 +26,17 @@ export type StockData = {
   LatestEarnings: string;
 };
 
+import { initialMockData } from './mockData';
+
 export default function Home() {
-  const [data, setData] = useState<StockData[]>([]);
+  const [data, setData] = useState<StockData[]>(initialMockData);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchData = async () => {
     try {
-      const res = await fetch('https://portfolio-dashboard-csw1.onrender.com/api/portfolio');
+      const res = await fetch('http://localhost:3001/api/portfolio');
       if (!res.ok) throw new Error('API fetch error');
 
       const json = await res.json();
