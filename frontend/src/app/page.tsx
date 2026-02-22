@@ -38,7 +38,9 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('https://portfolio-dashboard-csw1.onrender.com/api/portfolio');
+      const res = await fetch('https://portfolio-dashboard-csw1.onrender.com/api/portfolio', {
+        cache: 'no-store'
+      });
       if (!res.ok && res.status !== 202) throw new Error('API fetch error');
 
       if (res.status === 202) {
