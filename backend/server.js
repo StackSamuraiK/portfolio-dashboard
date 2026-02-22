@@ -57,7 +57,10 @@ const getYahooData = async (ticker) => {
 };
 
 const fetchAllData = async () => {
-    const promises = portfolioData.map(async (item) => {
+    const results = [];
+    for (const item of portfolioData) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+
         const [cmp, googleData] = await Promise.all([
             getYahooData(item.Ticker),
             scrapeGoogleFinance(item.GoogleFinanceTicker)
@@ -71,17 +74,17 @@ const fetchAllData = async () => {
             gainLoss = formatNumber((cmp * item.Qty) - item.Investment);
         }
 
-        return {
+        results.push({
             ...item,
             CMP: cmp !== 'N/A' ? formatNumber(cmp) : 'N/A',
             PresentValue: presentValue,
             GainLoss: gainLoss,
             PERatio: googleData.peRatio,
             LatestEarnings: googleData.latestEarnings
-        };
-    });
+        });
+    }
 
-    return await Promise.all(promises);
+    return results;
 };
 
 app.get('/api/portfolio', async (req, res) => {
@@ -102,7 +105,7 @@ app.get('/api/portfolio', async (req, res) => {
     }
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Backend server running on port ${PORT}`);
 });
