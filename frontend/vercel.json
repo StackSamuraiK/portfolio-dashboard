@@ -1,0 +1,22 @@
+{
+    "version": 2,
+    "framework": "nextjs",
+    "name": "portfolio-dashboard-frontend",
+    "builds": [
+        {
+            "src": "package.json",
+            "use": "@vercel/next"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "s-maxage=0, no-store, no-cache, must-revalidate, proxy-revalidate"
+                }
+            ]
+        }
+    ]
+}
