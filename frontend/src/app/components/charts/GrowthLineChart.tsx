@@ -23,20 +23,13 @@ export default function GrowthLineChart({ data, loading }: { data: StockData[], 
 
         setHistory(prev => {
             const newHistory = [...prev, { time: timeStr, value: totalCurrentValue }];
-            if (newHistory.length > 10) return newHistory.slice(newHistory.length - 10); //keeping last 10 data points for showing
+            if (newHistory.length > 20) return newHistory.slice(newHistory.length - 20); //keeping last 20 data points for showing
             return newHistory;
         });
 
     }, [data, loading]); // triggers whe data change
 
-    const displayData = history.length <= 1 && history.length > 0
-        ? [
-            { time: 'T-2m', value: history[0].value * 0.985 },
-            { time: 'T-1m', value: history[0].value * 0.992 },
-            { time: 'T-30s', value: history[0].value * 0.998 },
-            ...history
-        ]
-        : history;
+    const displayData = history;
 
     const minVal = displayData.length > 0 ? Math.min(...displayData.map(d => d.value)) : 0;
     const maxVal = displayData.length > 0 ? Math.max(...displayData.map(d => d.value)) : 0;
