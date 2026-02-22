@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const portfolioCache = new NodeCache({ stdTTL: 60 });
+const portfolioCache = new NodeCache({ stdTTL: 0 });
 
 const CACHE_KEY = 'portfolio_data';
 
@@ -23,7 +23,7 @@ const scrapeGoogleFinance = async (ticker) => {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             },
-            timeout: 3000
+            timeout: 10000
         });
         const $ = cheerio.load(data);
 
@@ -31,13 +31,19 @@ const scrapeGoogleFinance = async (ticker) => {
         let latestEarnings = 'N/A';
 
         try {
-            const peText = $('div:contains("P/E ratio")').last().parent().next('.P6K39c').text();
-            if (peText) peRatio = peText;
+            const peText = $('div:contains("P/E ratio")').last().parent().next().text();
+            if (peText && peText !== '-') peRatio = peText;
         } catch (e) { }
 
         try {
-            const earningsText = $('.QXDnM').first().text();
-            if (earningsText) latestEarnings = earningsText;
+            const revDiv = $('div:contains("Revenue")').last();
+            if (revDiv.length) {
+                const rawRowText = revDiv.parent().parent().text();
+                const match = rawRowText.match(/([\d.,]+[A-Z]+)/i);
+                if (match) latestEarnings = match[1];
+                else latestEarnings = $('.QXDnM').first().text();
+            }
+            if (latestEarnings === '-' || !latestEarnings) latestEarnings = 'N/A';
         } catch (e) { }
 
         return { peRatio, latestEarnings };
@@ -51,7 +57,7 @@ const getYahooData = async (ticker) => {
     try {
         const quote = await Promise.race([
             yahooFinance.quote(ticker),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout after 3s')), 3000))
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout after 10s')), 10000))
         ]);
         return quote?.regularMarketPrice || 'N/A';
     } catch (err) {
@@ -61,7 +67,9 @@ const getYahooData = async (ticker) => {
 };
 
 const fetchAllData = async () => {
-    const promises = portfolioData.map(async (item) => {
+    const results = [];
+    for (const item of portfolioData) {
+        await new Promise(resolve => setTimeout(resolve, 500));
         const [cmp, googleData] = await Promise.all([
             getYahooData(item.Ticker),
             scrapeGoogleFinance(item.GoogleFinanceTicker)
@@ -75,17 +83,17 @@ const fetchAllData = async () => {
             gainLoss = formatNumber((cmp * item.Qty) - item.Investment);
         }
 
-        return {
+        results.push({
             ...item,
             CMP: cmp !== 'N/A' ? formatNumber(cmp) : 'N/A',
             PresentValue: presentValue,
             GainLoss: gainLoss,
             PERatio: googleData.peRatio,
             LatestEarnings: googleData.latestEarnings
-        };
-    });
+        });
+    }
 
-    return await Promise.all(promises);
+    return results;
 };
 
 // Background worker
