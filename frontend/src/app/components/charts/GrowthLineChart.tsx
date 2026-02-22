@@ -49,7 +49,7 @@ export default function GrowthLineChart({ data, loading }: { data: StockData[], 
         <div className="bg-black p-6 rounded-xl border border-border shadow-lg h-[400px] flex flex-col">
             <h3 className="text-lg font-semibold mb-1 text-white flex justify-between items-center">
                 Portfolio Growth
-                <span className="bg-[#10b981]/10 text-[#10b981] text-xs px-2 py-1 rounded-full animate-pulse border border-[#10b981]/30">Live</span>
+                <span className="bg-[#10b981]/10 text-[#10b981] text-xs px-2 py-1 rounded-full border border-[#10b981]/30">Live</span>
             </h3>
             <p className="text-xs text-zinc-500 mb-4">Tracking total current value over polling cycles</p>
 

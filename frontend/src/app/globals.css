@@ -5,7 +5,6 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* Legacy mapped variables to prevent immediate breakage - all monochromatic now, except primary is violet */
   --color-background-app: #000000;
   --color-surface: #0a0a0a;
   --color-surface-hover: #171717;

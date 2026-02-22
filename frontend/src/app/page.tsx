@@ -34,7 +34,7 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/portfolio');
+      const res = await fetch('https://portfolio-dashboard-csw1.onrender.com/api/portfolio');
       if (!res.ok) throw new Error('API fetch error');
 
       const json = await res.json();
@@ -63,14 +63,14 @@ export default function Home() {
             Portfolio Dashboard
           </h1>
           <p className="text-sm text-zinc-400 mt-2">
-            Real-time live monitoring of assets
+            Real-time monitoring dashboard
           </p>
         </div>
         <div className="text-right">
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
           <p className="text-xs text-zinc-400 bg-zinc-900 px-3 py-1 rounded-full border border-zinc-800 flex items-center justify-end gap-2">
-            {!loading && <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse inline-block"></span>}
-            {loading ? 'Refreshing API...' : `Live • ${lastUpdated?.toLocaleTimeString()}`}
+            {!loading && <span className="w-2 h-2 rounded-full bg-[#10b981] inline-block"></span>}
+            {loading ? 'Fetching Data From API...' : `Latest Data Fetched At • ${lastUpdated?.toLocaleTimeString()}`}
           </p>
         </div>
       </header>

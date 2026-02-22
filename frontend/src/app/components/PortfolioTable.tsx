@@ -150,7 +150,7 @@ export default function PortfolioTable({ data, loading }: { data: StockData[], l
         return (
             <div className="flex justify-center items-center py-20 px-4 flex-col">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white mb-4"></div>
-                <p className="text-zinc-400 animate-pulse">Gathering live portfolio metrics...</p>
+                <p className="text-zinc-400 ">Gathering live portfolio metrics...</p>
             </div>
         );
     }
