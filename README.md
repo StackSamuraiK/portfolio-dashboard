@@ -68,6 +68,12 @@ You will need to run both the frontend and backend servers simultaneously in sep
    ```
    The frontend application will be available at `http://localhost:3000`.
 
+## Usage
+
+1. Once the application is running, open your web browser and navigate to `http://localhost:3000`.
+2. The dashboard will display your portfolio data, including current market price, present value, gain/loss, PE ratio, and latest earnings for each asset.
+3. The backend will automatically fetch updated data in the background, keeping your portfolio metrics current without needing manual page reloads.
+
 ## Notes
 
 - The backend caches the portfolio data and refreshes it in the background every 60 seconds.
